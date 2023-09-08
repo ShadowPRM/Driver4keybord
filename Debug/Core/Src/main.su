@@ -1,0 +1,5 @@
+main.c:61:6:HAL_TIM_PeriodElapsedCallback	16	static
+main.c:72:10:OprosKeybord	16	static
+main.c:89:5:main	16	static
+main.c:142:6:SystemClock_Config	72	static
+main.c:184:6:Error_Handler	4	static,ignoring_inline_asm
