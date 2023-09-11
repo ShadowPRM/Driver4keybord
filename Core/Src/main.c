@@ -35,6 +35,10 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
+// Задержка автонажания					3с	=3000мс
+// Период автонажатия					0,5с=500мс
+// Время фиксации простого нажатия		0,1с=100мс
+#define PER_OPR_KB 1000		//период опроса клавиатуры х10мкс (10000=>10мс=>100Гц)
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -48,6 +52,15 @@
 char uartBuf[64]={0,};
 volatile uint32_t keyKeybord=0;
 volatile uint8_t adrOprosa=0;
+volatile _Bool oprosStart=0;
+volatile _Bool oprosKB=0;
+volatile uint32_t countOprKB=0;
+uint32_t countKey1=0;
+uint32_t countKey2=0;
+uint8_t  numKey1=0;
+uint8_t  numKey2=0;
+uint8_t  najKey1=0;
+uint8_t  najKey2=0;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -63,21 +76,50 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
 		LedDbg_GPIO_Port->ODR ^= LedDbg_Pin;
 	}
 	if(htim->Instance==TIM2){		// каждые 10мкс
-		adrOprosa++;
-		if (adrOprosa>127){adrOprosa=0;}
+		if (adrOprosa) {oprosStart=1;} else {countOprKB++; oprosKB=1;}
+		if (countOprKB>=PER_OPR_KB) {oprosStart=1; countOprKB=0;}
 	} //end  10мс
 }
+/*void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin){
+	if(GPIO_Pin == adr0out0_Pin){ // если прерывание поступило от ножки PA9
+	//HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_8);
+	}
+}*/
 
+uint8_t OprosKeybord (uint8_t adres){
+	//uint8_t tekusheeSost=0;
+	uint8_t kolKeyOn=0;
+	uint8_t  key1=0;
+	uint8_t  key2=0;
+	uint8_t  key3=0;
 
-uint32_t OprosKeybord (uint8_t adres){
-	/* adr1out1_Pin|adr0out0_Pin  adr2out2_Pin
-	 * adr5in2_Pin|adr4in1_Pin|adr3in0_Pin
-	 * (GPIOC->IDR&(1<<13))
-	 * */
+	//Установка кода на HC138 для опроса клавиш (активное состояние л0!)
 	if (adres&(1<<0)) {adr0out0_GPIO_Port->ODR |= adr0out0_Pin;} else {adr0out0_GPIO_Port->ODR &=~ adr0out0_Pin;}
 	if (adres&(1<<1)) {adr1out1_GPIO_Port->ODR |= adr1out1_Pin;} else {adr1out1_GPIO_Port->ODR &=~ adr1out1_Pin;}
 	if (adres&(1<<2)) {adr2out2_GPIO_Port->ODR |= adr2out2_Pin;} else {adr2out2_GPIO_Port->ODR &=~ adr2out2_Pin;}
-	if (adr3in0_GPIO_Port->IDR & (1<<adr3in0_Pin)) {;}
+	key1=(adres & 0b111); key2=(adres & 0b111); key3=(adres & 0b111);
+
+	//Проверка состояния входов (проверяем л0)
+	if (adr3in0_GPIO_Port->IDR & (1<<adr3in0_Pin))   {key1 &=~ (1<<3); keyKeybord &=~ (1<<0+adres);}
+												else {key1 |= (1<<3);  keyKeybord |= (1<<0+adres); kolKeyOn++;}
+	if (adr4in1_GPIO_Port->IDR & (1<<adr4in1_Pin))   {key2 &=~ (1<<4); keyKeybord &=~ (1<<1+adres);}
+												else {key2 |= (1<<4);  keyKeybord |= (1<<1+adres); kolKeyOn++;}
+	if (adr5in2_GPIO_Port->IDR & (1<<adr5in2_Pin))   {key3 &=~ (1<<5); keyKeybord &=~ (1<<2+adres);}
+												else {key3 |= (1<<5);  keyKeybord |= (1<<2+adres); kolKeyOn++;}
+
+	//проверка 3х нажатых в одном столбце
+	if (key1 && key2 && key3){key1=0;key2=0;key3=0; numKey1=0; numKey2=0;}
+
+	//присвоение
+	if (!(numKey1)) {
+		if(key1) {numKey1=key1; key1=0;} else if(key2) {numKey1=key2; key2=0;} else if(key3) {numKey1=key3; key3=0;}
+	}
+	if (!(numKey2)) {
+		if(key1) {numKey1=key1;} else if(key2) {numKey1=key2;} else if(key3) {numKey1=key3;}
+	}
+
+	//возвращаем количество нажатых
+	return (kolKeyOn);
 }
 
 /* USER CODE END 0 */
@@ -119,14 +161,43 @@ int main(void)
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-  while (1){
+while (1){
 	uint16_t sizeString=0;
-	uint16_t keyCode=0;
+	uint8_t keyCode=0;
 
-	keyKeybord = OprosKeybord(adrOprosa);
+	/* Каждые 10мкс тикает таймер поднимает oprosStart
+	 * (т.е. частота опроса группы (1столбец=3клавиши) кнопок 100кГц) (Совокупность времени реакции 74HC138 адрес-выход ~528ns (1,893МГц) вроде бы:) )
+	 * (вприципе можно поднять частоту опроса)
+	 * В майне запускается опрос одного столбца клавиш
+	 * ! Задать частоту опроса всей клавиатуры
+	 * ! Включить прерывания на входах
+	 * ! От прерывания по входу, отсчитывать время удержания клавиши*/
+	if (oprosStart){
+		keyCode = OprosKeybord(adrOprosa);
+		adrOprosa++;
+		if (keyCode & 0b111000){										//если обнаружено нажатие
+			if (numKey1) {numKey2=keyCode;} else {numKey1=keyCode;}		//фиксируем код нажатой клавиши
+		}
+		//у HC 8 состояний выхода (в каждом по 3 кнопки)
+		if (adrOprosa>=8){adrOprosa=0;}
+		oprosStart=0;
+	}
 
-	sizeString=sprintf(uartBuf, "\tKey: %u\r\n", keyKeybord);
-	HAL_UART_Transmit(&huart1, (uint8_t*)uartBuf, sizeString, 1000);
+	if(countOprKB && oprosKB){
+		if (numKey1) {
+			if(numKey1==najKey1) {countKey1++;} else {numKey1=najKey1;}
+		}
+		if (numKey2) {
+			if(numKey2==najKey2) {countKey2++;} else {numKey2=najKey2;}
+		}
+		if (countKey1>=132){;}
+		if (countKey2>=132){;}
+		oprosKB=0;
+	}
+
+
+	//sizeString=sprintf(uartBuf, "\tKey: %u\r\n", keyKeybord);
+	//HAL_UART_Transmit(&huart1, (uint8_t*)uartBuf, sizeString, 1000);
 
     /* USER CODE END WHILE */
 
