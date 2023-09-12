@@ -27,23 +27,23 @@ Idx Name          Size      VMA       LMA       File off  Algn
                   ALLOC
  11 .ARM.attributes 00000029  00000000  00000000  00020070  2**0
                   CONTENTS, READONLY
- 12 .debug_info   0000e8e1  00000000  00000000  00020099  2**0
+ 12 .debug_info   0000e8cf  00000000  00000000  00020099  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 13 .debug_abbrev 0000207c  00000000  00000000  0002e97a  2**0
+ 13 .debug_abbrev 0000207c  00000000  00000000  0002e968  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 14 .debug_aranges 00000c68  00000000  00000000  000309f8  2**3
+ 14 .debug_aranges 00000c68  00000000  00000000  000309e8  2**3
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 15 .debug_ranges 00000b90  00000000  00000000  00031660  2**3
+ 15 .debug_ranges 00000b90  00000000  00000000  00031650  2**3
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 16 .debug_macro  0001816b  00000000  00000000  000321f0  2**0
+ 16 .debug_macro  0001816b  00000000  00000000  000321e0  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 17 .debug_line   0000e9f6  00000000  00000000  0004a35b  2**0
+ 17 .debug_line   0000e9f6  00000000  00000000  0004a34b  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 18 .debug_str    0008b00e  00000000  00000000  00058d51  2**0
+ 18 .debug_str    0008b003  00000000  00000000  00058d41  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 19 .comment      00000053  00000000  00000000  000e3d5f  2**0
+ 19 .comment      00000053  00000000  00000000  000e3d44  2**0
                   CONTENTS, READONLY
- 20 .debug_frame  000036cc  00000000  00000000  000e3db4  2**2
+ 20 .debug_frame  000036cc  00000000  00000000  000e3d98  2**2
                   CONTENTS, READONLY, DEBUGGING, OCTETS
 
 Disassembly of section .text:
@@ -257,7 +257,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
  8000274:	af00      	add	r7, sp, #0
  8000276:	6078      	str	r0, [r7, #4]
 	if(htim->Instance==TIM1){		// каждые 10мс
-		//if(++countTEST1>=1000){numKey1++;numKey2+=2;}
+		//для отладки
 	}
 	if(htim->Instance==TIM2){		// каждые 10мкс
  8000278:	687b      	ldr	r3, [r7, #4]
@@ -297,7 +297,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
  80002b6:	3301      	adds	r3, #1
  80002b8:	4a0d      	ldr	r2, [pc, #52]	; (80002f0 <HAL_TIM_PeriodElapsedCallback+0x80>)
  80002ba:	6013      	str	r3, [r2, #0]
-		if (countOprKB>=PER_OPR_KB) {oprosStart=1; countOprKB=0;} // oprosKB=1;
+		if (countOprKB>=PER_OPR_KB) {oprosStart=1; countOprKB=0;}
  80002bc:	4b0c      	ldr	r3, [pc, #48]	; (80002f0 <HAL_TIM_PeriodElapsedCallback+0x80>)
  80002be:	681b      	ldr	r3, [r3, #0]
  80002c0:	f5b3 7f7a 	cmp.w	r3, #1000	; 0x3e8
@@ -308,10 +308,9 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
  80002cc:	4b08      	ldr	r3, [pc, #32]	; (80002f0 <HAL_TIM_PeriodElapsedCallback+0x80>)
  80002ce:	2200      	movs	r2, #0
  80002d0:	601a      	str	r2, [r3, #0]
+	}
 	if(htim->Instance==TIM3){
-		//numKey1=15;
-		//numKey2=24;
-		//if(++countTEST1>=1000){numKey1++;numKey2+=2;countTEST1=0;}
+		//для отладки
 	}
 }
  80002d2:	bf00      	nop
@@ -335,7 +334,6 @@ uint8_t OprosKeybord (uint8_t adres){
  80002f8:	af00      	add	r7, sp, #0
  80002fa:	4603      	mov	r3, r0
  80002fc:	71fb      	strb	r3, [r7, #7]
-	//uint8_t tekusheeSost=0;
 	uint8_t  key1=0;
  80002fe:	2300      	movs	r3, #0
  8000300:	73fb      	strb	r3, [r7, #15]
@@ -351,8 +349,8 @@ uint8_t OprosKeybord (uint8_t adres){
  800030c:	f003 0301 	and.w	r3, r3, #1
  8000310:	2b00      	cmp	r3, #0
  8000312:	d136      	bne.n	8000382 <OprosKeybord+0x8e>
-	//Установка кода на HC138 для опроса клавиш (активное состояние л0!)
-	if (adres&(1<<1)) {adr0out0_GPIO_Port->ODR |= adr0out0_Pin;} else {adr0out0_GPIO_Port->ODR &=~ adr0out0_Pin;}
+		//Установка кода на HC138 для опроса клавиш (активное состояние л0!)
+		if (adres&(1<<1)) {adr0out0_GPIO_Port->ODR |= adr0out0_Pin;} else {adr0out0_GPIO_Port->ODR &=~ adr0out0_Pin;}
  8000314:	79fb      	ldrb	r3, [r7, #7]
  8000316:	f003 0302 	and.w	r3, r3, #2
  800031a:	2b00      	cmp	r3, #0
@@ -368,7 +366,7 @@ uint8_t OprosKeybord (uint8_t adres){
  8000330:	4a90      	ldr	r2, [pc, #576]	; (8000574 <OprosKeybord+0x280>)
  8000332:	f423 7300 	bic.w	r3, r3, #512	; 0x200
  8000336:	60d3      	str	r3, [r2, #12]
-	if (adres&(1<<2)) {adr1out1_GPIO_Port->ODR |= adr1out1_Pin;} else {adr1out1_GPIO_Port->ODR &=~ adr1out1_Pin;}
+		if (adres&(1<<2)) {adr1out1_GPIO_Port->ODR |= adr1out1_Pin;} else {adr1out1_GPIO_Port->ODR &=~ adr1out1_Pin;}
  8000338:	79fb      	ldrb	r3, [r7, #7]
  800033a:	f003 0304 	and.w	r3, r3, #4
  800033e:	2b00      	cmp	r3, #0
@@ -384,7 +382,7 @@ uint8_t OprosKeybord (uint8_t adres){
  8000354:	4a87      	ldr	r2, [pc, #540]	; (8000574 <OprosKeybord+0x280>)
  8000356:	f423 7380 	bic.w	r3, r3, #256	; 0x100
  800035a:	60d3      	str	r3, [r2, #12]
-	if (adres&(1<<3)) {adr2out2_GPIO_Port->ODR |= adr2out2_Pin;} else {adr2out2_GPIO_Port->ODR &=~ adr2out2_Pin;}
+		if (adres&(1<<3)) {adr2out2_GPIO_Port->ODR |= adr2out2_Pin;} else {adr2out2_GPIO_Port->ODR &=~ adr2out2_Pin;}
  800035c:	79fb      	ldrb	r3, [r7, #7]
  800035e:	f003 0308 	and.w	r3, r3, #8
  8000362:	2b00      	cmp	r3, #0
@@ -401,15 +399,14 @@ uint8_t OprosKeybord (uint8_t adres){
  800037a:	f423 4300 	bic.w	r3, r3, #32768	; 0x8000
  800037e:	60d3      	str	r3, [r2, #12]
  8000380:	e0f0      	b.n	8000564 <OprosKeybord+0x270>
-	//adres &= 0b00000111;	//на всякий случай
 	}
 	else {
-	//Проверка состояния входов (проверяем л0)
+		//Проверка состояния входов (проверяем л0)
 		adres=adres>>1;
  8000382:	79fb      	ldrb	r3, [r7, #7]
  8000384:	085b      	lsrs	r3, r3, #1
  8000386:	71fb      	strb	r3, [r7, #7]
-	if (adr3in0_GPIO_Port->IDR & adr3in0_Pin)   {key1 &=~ (1<<3); keyKeybord &=~ (1<<(0+adres));}
+		if (adr3in0_GPIO_Port->IDR & adr3in0_Pin)	{key1 &=~ (1<<3); keyKeybord &=~ (1<<(0+adres));}
  8000388:	4b7b      	ldr	r3, [pc, #492]	; (8000578 <OprosKeybord+0x284>)
  800038a:	689b      	ldr	r3, [r3, #8]
  800038c:	f403 4380 	and.w	r3, r3, #16384	; 0x4000
@@ -429,7 +426,7 @@ uint8_t OprosKeybord (uint8_t adres){
  80003ae:	4a73      	ldr	r2, [pc, #460]	; (800057c <OprosKeybord+0x288>)
  80003b0:	6013      	str	r3, [r2, #0]
  80003b2:	e00d      	b.n	80003d0 <OprosKeybord+0xdc>
-												else {key1 |= (1<<3);  keyKeybord |= (1<<(0+adres)); }
+		else										{key1 |= (1<<3);  keyKeybord |= (1<<(0+adres)); }
  80003b4:	7bfb      	ldrb	r3, [r7, #15]
  80003b6:	f043 0308 	orr.w	r3, r3, #8
  80003ba:	73fb      	strb	r3, [r7, #15]
@@ -443,7 +440,7 @@ uint8_t OprosKeybord (uint8_t adres){
  80003cc:	4a6b      	ldr	r2, [pc, #428]	; (800057c <OprosKeybord+0x288>)
  80003ce:	6013      	str	r3, [r2, #0]
 
-	if (adr4in1_GPIO_Port->IDR & adr4in1_Pin)   {key2 &=~ (1<<4); keyKeybord &=~ (1<<(1+adres));}
+		if (adr4in1_GPIO_Port->IDR & adr4in1_Pin)	{key2 &=~ (1<<4); keyKeybord &=~ (1<<(1+adres));}
  80003d0:	4b69      	ldr	r3, [pc, #420]	; (8000578 <OprosKeybord+0x284>)
  80003d2:	689b      	ldr	r3, [r3, #8]
  80003d4:	f403 5300 	and.w	r3, r3, #8192	; 0x2000
@@ -464,7 +461,7 @@ uint8_t OprosKeybord (uint8_t adres){
  80003f8:	4a60      	ldr	r2, [pc, #384]	; (800057c <OprosKeybord+0x288>)
  80003fa:	6013      	str	r3, [r2, #0]
  80003fc:	e00e      	b.n	800041c <OprosKeybord+0x128>
-												else {key2 |= (1<<4);  keyKeybord |= (1<<(1+adres));}
+		else										{key2 |= (1<<4);  keyKeybord |= (1<<(1+adres));}
  80003fe:	7bbb      	ldrb	r3, [r7, #14]
  8000400:	f043 0310 	orr.w	r3, r3, #16
  8000404:	73bb      	strb	r3, [r7, #14]
@@ -479,7 +476,7 @@ uint8_t OprosKeybord (uint8_t adres){
  8000418:	4a58      	ldr	r2, [pc, #352]	; (800057c <OprosKeybord+0x288>)
  800041a:	6013      	str	r3, [r2, #0]
 
-	if (adr5in2_GPIO_Port->IDR & adr5in2_Pin)   {key3 &=~ (1<<5); keyKeybord &=~ (1<<(2+adres));}
+		if (adr5in2_GPIO_Port->IDR & adr5in2_Pin)	{key3 &=~ (1<<5); keyKeybord &=~ (1<<(2+adres));}
  800041c:	4b56      	ldr	r3, [pc, #344]	; (8000578 <OprosKeybord+0x284>)
  800041e:	689b      	ldr	r3, [r3, #8]
  8000420:	f403 5380 	and.w	r3, r3, #4096	; 0x1000
@@ -500,7 +497,7 @@ uint8_t OprosKeybord (uint8_t adres){
  8000444:	4a4d      	ldr	r2, [pc, #308]	; (800057c <OprosKeybord+0x288>)
  8000446:	6013      	str	r3, [r2, #0]
  8000448:	e00e      	b.n	8000468 <OprosKeybord+0x174>
-												else {key3 |= (1<<5);  keyKeybord |= (1<<(2+adres));}
+		else										{key3 |= (1<<5);  keyKeybord |= (1<<(2+adres));}
  800044a:	7b7b      	ldrb	r3, [r7, #13]
  800044c:	f043 0320 	orr.w	r3, r3, #32
  8000450:	737b      	strb	r3, [r7, #13]
@@ -515,8 +512,8 @@ uint8_t OprosKeybord (uint8_t adres){
  8000464:	4a45      	ldr	r2, [pc, #276]	; (800057c <OprosKeybord+0x288>)
  8000466:	6013      	str	r3, [r2, #0]
 
-	//проверка 3х нажатых в одном столбце
-	if (key1 && key2 && key3) {key1=0;key2=0;key3=0; numKey1=0; numKey2=0;  return (0xfe);} //adrOprosa=0;
+		//проверка 3х нажатых в одном столбце
+		if (key1 && key2 && key3) {key1=0;key2=0;key3=0; numKey1=0; numKey2=0;  return (0xfe);}
  8000468:	7bfb      	ldrb	r3, [r7, #15]
  800046a:	2b00      	cmp	r3, #0
  800046c:	d013      	beq.n	8000496 <OprosKeybord+0x1a2>
@@ -541,8 +538,8 @@ uint8_t OprosKeybord (uint8_t adres){
  8000492:	23fe      	movs	r3, #254	; 0xfe
  8000494:	e068      	b.n	8000568 <OprosKeybord+0x274>
 
-	//проверка 3х нажатых в общем опросе клавы
-	if (numKey1 && numKey2 && (key1|key2|key3)) {key1=0;key2=0;key3=0; numKey1=0; numKey2=0;  return (0xff);} //adrOprosa=0;
+		//проверка 3х нажатых в общем опросе клавы
+		if (numKey1 && numKey2 && (key1|key2|key3)) {key1=0;key2=0;key3=0; numKey1=0; numKey2=0;  return (0xff);}
  8000496:	4b3a      	ldr	r3, [pc, #232]	; (8000580 <OprosKeybord+0x28c>)
  8000498:	781b      	ldrb	r3, [r3, #0]
  800049a:	2b00      	cmp	r3, #0
@@ -575,13 +572,13 @@ uint8_t OprosKeybord (uint8_t adres){
  80004d0:	23ff      	movs	r3, #255	; 0xff
  80004d2:	e049      	b.n	8000568 <OprosKeybord+0x274>
 
-	//присвоение
-	if (!(numKey1)) {
+		//присвоение
+		if (!(numKey1)) {
  80004d4:	4b2a      	ldr	r3, [pc, #168]	; (8000580 <OprosKeybord+0x28c>)
  80004d6:	781b      	ldrb	r3, [r3, #0]
  80004d8:	2b00      	cmp	r3, #0
  80004da:	d122      	bne.n	8000522 <OprosKeybord+0x22e>
-		if(key1) {numKey1=key1|adres; key1=0;} else if(key2) {numKey1=key2|adres; key2=0;} else if(key3) {numKey1=key3|adres; key3=0;}
+			if(key1) {numKey1=key1|adres; key1=0;} else if(key2) {numKey1=key2|adres; key2=0;} else if(key3) {numKey1=key3|adres; key3=0;}
  80004dc:	7bfb      	ldrb	r3, [r7, #15]
  80004de:	2b00      	cmp	r3, #0
  80004e0:	d008      	beq.n	80004f4 <OprosKeybord+0x200>
@@ -617,13 +614,13 @@ uint8_t OprosKeybord (uint8_t adres){
  800051c:	701a      	strb	r2, [r3, #0]
  800051e:	2300      	movs	r3, #0
  8000520:	737b      	strb	r3, [r7, #13]
-	}
-	if (!(numKey2)) {
+		}
+		if (!(numKey2)) {
  8000522:	4b18      	ldr	r3, [pc, #96]	; (8000584 <OprosKeybord+0x290>)
  8000524:	781b      	ldrb	r3, [r3, #0]
  8000526:	2b00      	cmp	r3, #0
  8000528:	d11c      	bne.n	8000564 <OprosKeybord+0x270>
-		if(key1) {numKey2=key1|adres;} else if(key2) {numKey2=key2|adres;} else if(key3) {numKey2=key3|adres;}
+			if(key1) {numKey2=key1|adres;} else if(key2) {numKey2=key2|adres;} else if(key3) {numKey2=key3|adres;}
  800052a:	7bfb      	ldrb	r3, [r7, #15]
  800052c:	2b00      	cmp	r3, #0
  800052e:	d006      	beq.n	800053e <OprosKeybord+0x24a>
@@ -653,9 +650,9 @@ uint8_t OprosKeybord (uint8_t adres){
  800055e:	b2da      	uxtb	r2, r3
  8000560:	4b08      	ldr	r3, [pc, #32]	; (8000584 <OprosKeybord+0x290>)
  8000562:	701a      	strb	r2, [r3, #0]
+		}
 	}
-	}
-	//возвращаем количество нажатых
+	//возвращаем пустышку или вон аварийную ситуацию
 	return (kolKeyOn);
  8000564:	4b08      	ldr	r3, [pc, #32]	; (8000588 <OprosKeybord+0x294>)
  8000566:	781b      	ldrb	r3, [r3, #0]
@@ -742,11 +739,11 @@ while (1){
  80005d8:	4618      	mov	r0, r3
  80005da:	f002 fe9d 	bl	8003318 <memset>
 	 * (вприципе можно поднять частоту опроса)
-	 * В майне запускается опрос одного столбца клавиш
-	 * ! Задать частоту опроса всей клавиатуры
-	 * ! Включить прерывания на входах
-	 * ! От прерывания по входу, отсчитывать время удержания клавиши*/
-	if (oprosStart){		// Опрашиваем клавиатуру 8 раз по 3 кнопки (фиксируем нажатые кнопки)
+	 */
+
+	// Опрашиваем клавиатуру 8 раз по 3 кнопки (фиксируем нажатые кнопки),
+	// но чтоб чётко выставился адрес вставлю доп обращения
+	if (oprosStart){
  80005de:	4b9a      	ldr	r3, [pc, #616]	; (8000848 <main+0x2bc>)
  80005e0:	781b      	ldrb	r3, [r3, #0]
  80005e2:	b2db      	uxtb	r3, r3
@@ -787,15 +784,14 @@ while (1){
  8000622:	701a      	strb	r2, [r3, #0]
 	}
 
-	if (oprosKB){		// Когда опросили надо +1 счётчику нажатой кнопки, если нажата та же
+	//фиксация кнопок
+	if (oprosKB){
  8000624:	4b8a      	ldr	r3, [pc, #552]	; (8000850 <main+0x2c4>)
  8000626:	781b      	ldrb	r3, [r3, #0]
  8000628:	b2db      	uxtb	r3, r3
  800062a:	2b00      	cmp	r3, #0
  800062c:	d034      	beq.n	8000698 <main+0x10c>
-
-
-		if (numKey1!=najKey1) {najKey1=numKey1; countPresKey1=0; printLong=0; key1NormPress=0; key1LongPress=0; //(numKey1)&&
+		if (numKey1!=najKey1) {najKey1=numKey1; countPresKey1=0; printLong=0; key1NormPress=0; key1LongPress=0;}
  800062e:	4b89      	ldr	r3, [pc, #548]	; (8000854 <main+0x2c8>)
  8000630:	781a      	ldrb	r2, [r3, #0]
  8000632:	4b89      	ldr	r3, [pc, #548]	; (8000858 <main+0x2cc>)
@@ -818,12 +814,7 @@ while (1){
  8000654:	4b84      	ldr	r3, [pc, #528]	; (8000868 <main+0x2dc>)
  8000656:	2200      	movs	r2, #0
  8000658:	701a      	strb	r2, [r3, #0]
-		/*if (numKey2) {
-			if(numKey2==najKey2){;}	//countPresKey2++
-			else				{najKey2=numKey2; countPresKey2=0; printLong=0; key2NormPress=0; key2LongPress=0;}
-			numKey2=0;
-		}*/
-		if(numKey2!=najKey2) {najKey2=numKey2; countPresKey2=0; printLong=0; key2NormPress=0; key2LongPress=0;
+		if (numKey2!=najKey2) {najKey2=numKey2; countPresKey2=0; printLong=0; key2NormPress=0; key2LongPress=0;}
  800065a:	4b84      	ldr	r3, [pc, #528]	; (800086c <main+0x2e0>)
  800065c:	781a      	ldrb	r2, [r3, #0]
  800065e:	4b84      	ldr	r3, [pc, #528]	; (8000870 <main+0x2e4>)
@@ -846,9 +837,7 @@ while (1){
  8000680:	4b7e      	ldr	r3, [pc, #504]	; (800087c <main+0x2f0>)
  8000682:	2200      	movs	r2, #0
  8000684:	701a      	strb	r2, [r3, #0]
-			//numKey2=0;
-		}
-		numKey1=0; numKey2=0; //key1=0; key2=0; key3=0;
+		numKey1=0; numKey2=0;
  8000686:	4b73      	ldr	r3, [pc, #460]	; (8000854 <main+0x2c8>)
  8000688:	2200      	movs	r2, #0
  800068a:	701a      	strb	r2, [r3, #0]
@@ -860,7 +849,6 @@ while (1){
  8000694:	2200      	movs	r2, #0
  8000696:	701a      	strb	r2, [r3, #0]
 	}
-
 
 	//фиксация длительного нажатия
 	if (!key1LongPress && najKey1 && (countPresKey1>=VREM_FIX_PRKEY)){

@@ -14,6 +14,11 @@
   * If no LICENSE file comes with this software, it is provided AS-IS.
   *
   ******************************************************************************
+  ******************************************************************************
+  ******************************************************************************
+
+  	  Драйвер для клавиатуры 3х8 на МС 74HC138
+
   */
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
@@ -37,7 +42,7 @@
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
 // Задержка автонажания					3с	=3000мс
-// Период автонажатия					0,5с=500мс
+// Период вывода автонажатия			0,5с=500мс
 // Время фиксации простого нажатия		0,1с=100мс
 #define PER_OPR_KB 1000		//период опроса клавиатуры х10мкс (10000=>10мс=>100Гц)
 #define VREM_FIX_KEY 10000		//время фиксации простого нажатия х10мкс (=100мс)
@@ -65,20 +70,18 @@ _Bool key1NormPress=0;
 _Bool key2NormPress=0;
 _Bool printLong=0;
 
-volatile uint32_t countTEST1=0;
 volatile uint32_t countOprKB=0;
 volatile uint32_t countPovtorPrint=0;
 
 uint32_t countPresKey1=0;
 uint32_t countPresKey2=0;
 
-
-
 uint8_t  numKey1=0;
 uint8_t  numKey2=0;
 uint8_t  najKey1=0;
 uint8_t  najKey2=0;
 uint8_t  kolKeyOn=0;
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -91,63 +94,59 @@ void SystemClock_Config(void);
 /* USER CODE BEGIN 0 */
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
 	if(htim->Instance==TIM1){		// каждые 10мс
-		//if(++countTEST1>=1000){numKey1++;numKey2+=2;}
+		//для отладки
 	}
 	if(htim->Instance==TIM2){		// каждые 10мкс
 		countPovtorPrint++;
 		countPresKey1++;
 		countPresKey2++;
 		if (adrOprosa) {oprosStart=1;} else {countOprKB++;}
-		if (countOprKB>=PER_OPR_KB) {oprosStart=1; countOprKB=0;} // oprosKB=1;
+		if (countOprKB>=PER_OPR_KB) {oprosStart=1; countOprKB=0;}
 	}
 	if(htim->Instance==TIM3){
-		//numKey1=15;
-		//numKey2=24;
-		//if(++countTEST1>=1000){numKey1++;numKey2+=2;countTEST1=0;}
+		//для отладки
 	}
 }
 
 
 uint8_t OprosKeybord (uint8_t adres){
-	//uint8_t tekusheeSost=0;
 	uint8_t  key1=0;
 	uint8_t  key2=0;
 	uint8_t  key3=0;
 
 	if (!(adres & 0x01)){
-	//Установка кода на HC138 для опроса клавиш (активное состояние л0!)
-	if (adres&(1<<1)) {adr0out0_GPIO_Port->ODR |= adr0out0_Pin;} else {adr0out0_GPIO_Port->ODR &=~ adr0out0_Pin;}
-	if (adres&(1<<2)) {adr1out1_GPIO_Port->ODR |= adr1out1_Pin;} else {adr1out1_GPIO_Port->ODR &=~ adr1out1_Pin;}
-	if (adres&(1<<3)) {adr2out2_GPIO_Port->ODR |= adr2out2_Pin;} else {adr2out2_GPIO_Port->ODR &=~ adr2out2_Pin;}
-	//adres &= 0b00000111;	//на всякий случай
+		//Установка кода на HC138 для опроса клавиш (активное состояние л0!)
+		if (adres&(1<<1)) {adr0out0_GPIO_Port->ODR |= adr0out0_Pin;} else {adr0out0_GPIO_Port->ODR &=~ adr0out0_Pin;}
+		if (adres&(1<<2)) {adr1out1_GPIO_Port->ODR |= adr1out1_Pin;} else {adr1out1_GPIO_Port->ODR &=~ adr1out1_Pin;}
+		if (adres&(1<<3)) {adr2out2_GPIO_Port->ODR |= adr2out2_Pin;} else {adr2out2_GPIO_Port->ODR &=~ adr2out2_Pin;}
 	}
 	else {
-	//Проверка состояния входов (проверяем л0)
+		//Проверка состояния входов (проверяем л0)
 		adres=adres>>1;
-	if (adr3in0_GPIO_Port->IDR & adr3in0_Pin)   {key1 &=~ (1<<3); keyKeybord &=~ (1<<(0+adres));}
-												else {key1 |= (1<<3);  keyKeybord |= (1<<(0+adres)); }
+		if (adr3in0_GPIO_Port->IDR & adr3in0_Pin)	{key1 &=~ (1<<3); keyKeybord &=~ (1<<(0+adres));}
+		else										{key1 |= (1<<3);  keyKeybord |= (1<<(0+adres)); }
 
-	if (adr4in1_GPIO_Port->IDR & adr4in1_Pin)   {key2 &=~ (1<<4); keyKeybord &=~ (1<<(1+adres));}
-												else {key2 |= (1<<4);  keyKeybord |= (1<<(1+adres));}
+		if (adr4in1_GPIO_Port->IDR & adr4in1_Pin)	{key2 &=~ (1<<4); keyKeybord &=~ (1<<(1+adres));}
+		else										{key2 |= (1<<4);  keyKeybord |= (1<<(1+adres));}
 
-	if (adr5in2_GPIO_Port->IDR & adr5in2_Pin)   {key3 &=~ (1<<5); keyKeybord &=~ (1<<(2+adres));}
-												else {key3 |= (1<<5);  keyKeybord |= (1<<(2+adres));}
+		if (adr5in2_GPIO_Port->IDR & adr5in2_Pin)	{key3 &=~ (1<<5); keyKeybord &=~ (1<<(2+adres));}
+		else										{key3 |= (1<<5);  keyKeybord |= (1<<(2+adres));}
 
-	//проверка 3х нажатых в одном столбце
-	if (key1 && key2 && key3) {key1=0;key2=0;key3=0; numKey1=0; numKey2=0;  return (0xfe);} //adrOprosa=0;
+		//проверка 3х нажатых в одном столбце
+		if (key1 && key2 && key3) {key1=0;key2=0;key3=0; numKey1=0; numKey2=0;  return (0xfe);}
 
-	//проверка 3х нажатых в общем опросе клавы
-	if (numKey1 && numKey2 && (key1|key2|key3)) {key1=0;key2=0;key3=0; numKey1=0; numKey2=0;  return (0xff);} //adrOprosa=0;
+		//проверка 3х нажатых в общем опросе клавы
+		if (numKey1 && numKey2 && (key1|key2|key3)) {key1=0;key2=0;key3=0; numKey1=0; numKey2=0;  return (0xff);}
 
-	//присвоение
-	if (!(numKey1)) {
-		if(key1) {numKey1=key1|adres; key1=0;} else if(key2) {numKey1=key2|adres; key2=0;} else if(key3) {numKey1=key3|adres; key3=0;}
+		//присвоение
+		if (!(numKey1)) {
+			if(key1) {numKey1=key1|adres; key1=0;} else if(key2) {numKey1=key2|adres; key2=0;} else if(key3) {numKey1=key3|adres; key3=0;}
+		}
+		if (!(numKey2)) {
+			if(key1) {numKey2=key1|adres;} else if(key2) {numKey2=key2|adres;} else if(key3) {numKey2=key3|adres;}
+		}
 	}
-	if (!(numKey2)) {
-		if(key1) {numKey2=key1|adres;} else if(key2) {numKey2=key2|adres;} else if(key3) {numKey2=key3|adres;}
-	}
-	}
-	//возвращаем количество нажатых
+	//возвращаем пустышку или вон аварийную ситуацию
 	return (kolKeyOn);
 }
 
@@ -198,15 +197,14 @@ while (1){
 	uint8_t kolNaj=0;
 	char uartBuf [64]={0,};
 
-
 	/* Каждые 10мкс тикает таймер поднимает oprosStart
-	 * (т.е. частота опроса группы (1столбец=3клавиши) кнопок 100кГц) (Совокупность времени реакции 74HC138 адрес-выход ~528ns (1,893МГц) вроде бы:) )
+	 * (т.е. частота опроса группы (1столбец=3клавиши) кнопок 100кГц) (Совокупность времени реакции 74HC138 из даташит адрес-выход ~528ns (1,893МГц) вроде бы:) )
 	 * (вприципе можно поднять частоту опроса)
-	 * В майне запускается опрос одного столбца клавиш
-	 * ! Задать частоту опроса всей клавиатуры
-	 * ! Включить прерывания на входах
-	 * ! От прерывания по входу, отсчитывать время удержания клавиши*/
-	if (oprosStart){		// Опрашиваем клавиатуру 8 раз по 3 кнопки (фиксируем нажатые кнопки)
+	 */
+
+	// Опрашиваем клавиатуру 8 раз по 3 кнопки (фиксируем нажатые кнопки),
+	// но чтоб чётко выставился адрес вставлю доп обращения
+	if (oprosStart){
 		kolNaj = OprosKeybord(adrOprosa);
 		adrOprosa++;
 		//у HC 8 состояний выхода (в каждом по 3 кнопки)
@@ -214,24 +212,13 @@ while (1){
 		oprosStart=0;
 	}
 
-	if (oprosKB){		// Когда опросили надо +1 счётчику нажатой кнопки, если нажата та же
-
-
-		if (numKey1!=najKey1) {najKey1=numKey1; countPresKey1=0; printLong=0; key1NormPress=0; key1LongPress=0; //(numKey1)&&
-			//numKey1=0;
-		}
-		/*if (numKey2) {
-			if(numKey2==najKey2){;}	//countPresKey2++
-			else				{najKey2=numKey2; countPresKey2=0; printLong=0; key2NormPress=0; key2LongPress=0;}
-			numKey2=0;
-		}*/
-		if(numKey2!=najKey2) {najKey2=numKey2; countPresKey2=0; printLong=0; key2NormPress=0; key2LongPress=0;
-			//numKey2=0;
-		}
-		numKey1=0; numKey2=0; //key1=0; key2=0; key3=0;
+	//фиксация кнопок
+	if (oprosKB){
+		if (numKey1!=najKey1) {najKey1=numKey1; countPresKey1=0; printLong=0; key1NormPress=0; key1LongPress=0;}
+		if (numKey2!=najKey2) {najKey2=numKey2; countPresKey2=0; printLong=0; key2NormPress=0; key2LongPress=0;}
+		numKey1=0; numKey2=0;
 		oprosKB=0;
 	}
-
 
 	//фиксация длительного нажатия
 	if (!key1LongPress && najKey1 && (countPresKey1>=VREM_FIX_PRKEY)){
